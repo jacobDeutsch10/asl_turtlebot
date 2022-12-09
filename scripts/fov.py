@@ -37,7 +37,12 @@ class FovVisualizer:
         self.theta = euler[2]
     def fov_callback(self, data):
         fx, w, fy, h = data.K[0], data.width, data.K[4], data.height
+        self.K = data.K#np.reshape(data.K, (3,3))
+        self.fx = fx
+        self.fy = fy
         self.fov_x = 2*np.arctan2(w, 2*fx)
+        self.w = w
+        self.h = h
         self.fov_y = 2*np.arctan2(h, 2*fy)
 
     def gen_marker(self):
@@ -52,10 +57,11 @@ class FovVisualizer:
         cam.z = self.z
         cam.x = self.x
         cam.y = self.y
-        r = np.tan(self.fov_x/2)*self.d 
-        l = -r
-        t = np.tan(self.fov_y/2)*self.d
-        b = -t
+        r = (self.w-self.K[2])*self.d/self.fx#np.tan(self.fov_x/2)*self.d 
+        l = -self.K[2]*self.d/self.fx#-r
+        t = (self.h-self.K[5])*self.d/self.fy#np.tan(self.fov_y/2)*self.d
+        b = -self.K[5]*self.d/self.fy#-t
+        print(r,b,l,t)
         bl = Point()
         bl.x = self.x + self.d
         bl.y = self.y + l
