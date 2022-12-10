@@ -158,10 +158,12 @@ class Detector:
         that is a unit vector in the direction of the pixel, in the camera frame """
 
         ########## Code starts here ##########
-        # TODO: Compute x, y, z.
-        x = 0.
-        y = 0.
-        z = 1.
+        x = (u - self.cx) / self.fx
+        y = (v - self.cy) / self.fy
+        norm = math.sqrt(x * x + y * y + 1)
+        x /= norm
+        y /= norm
+        z = 1.0 / norm
         ########## Code ends here ##########
 
         return x, y, z
@@ -257,11 +259,13 @@ class Detector:
         the focal lengths. """
 
         ########## Code starts here ##########
-        # TODO: Extract camera intrinsic parameters.
-        self.cx = 0.
-        self.cy = 0.
-        self.fx = 1.
-        self.fy = 1.
+        if any(msg.P):
+            self.cx = msg.P[2]
+            self.cy = msg.P[6]
+            self.fx = msg.P[0]
+            self.fy = msg.P[5]
+        else:
+            rospy.loginfo("`CameraInfo` message seems to be invalid; ignoring it.")
         ########## Code ends here ##########
 
     def laser_callback(self, msg):

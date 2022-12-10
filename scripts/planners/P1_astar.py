@@ -158,7 +158,10 @@ class AStar(object):
                 set membership efficiently using the syntax "if item in set".
         """
         ########## Code starts here ##########
-        while len(self.open_set) > 0:
+        i = 0
+        max_iter = 10000
+        while len(self.open_set) > 0 and max_iter > i:
+            i+=1
             x_curr = self.find_best_est_cost_through()
             if x_curr == self.x_goal:
                 self.path = self.reconstruct_path()

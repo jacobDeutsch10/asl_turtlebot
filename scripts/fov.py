@@ -60,7 +60,6 @@ class FovVisualizer:
         l = -self.K[2]*self.d/self.fx#-r
         t = (self.h-self.K[5])*self.d/self.fy#np.tan(self.fov_y/2)*self.d
         b = -self.K[5]*self.d/self.fy#-t
-        print(r,b,l,t)
         bl = Point()
         bl.x = self.x + self.d
         bl.y = self.y + l

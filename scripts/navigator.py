@@ -4,6 +4,7 @@ import rospy
 from nav_msgs.msg import OccupancyGrid, MapMetaData, Path
 from geometry_msgs.msg import Twist, Pose2D, PoseStamped
 from std_msgs.msg import String
+from visualization_msgs.msg import Marker
 import tf
 import numpy as np
 from numpy import linalg
@@ -25,13 +26,28 @@ class Mode(Enum):
     TRACK = 2
     PARK = 3
 
+
+class Objective(Enum):
+    EXPLORE = 0
+    RESCUE = 1
+    
+
 explore_waypoints = [
     (3.2224685842650422, 2.779933137939175, -3.0834403952502436),
     (1.787139051775313, 2.8038360096923443, -3.0775447685851915),
     (0.7194789276188762, 2.7161621206115685, -2.1832707992361757),
     (0.28557073807874755, 2.1215929112361462, -1.3927941798813344),
-    (0.27906471710125774, 0.2929687321869445, -0.03165554729860527),
-    (3.0258309284661156, 1.1970240906040919, 1.2283260606133848)
+    (0.28557073807874755, 1.1215929112361462, -1.3927941798813344),
+    (0.3206471710125774, 0.3529687321869445, -0.03165554729860527),
+    (2.2927230743347953, 0.3564668258406674, 1.5304144639499595),
+    (2.2927230743347953, 1.53, 1.5304144639499595),
+    (2.2927230743347953, 0.3564668258406674, -0.0316),
+    #(2.4310619084668295, 2.1494065418675166, 1.442590999393995),
+    #(2.4310619084668295, 2.3065418675166, 1.442590999393995),
+    #(2.6285839898857115, 2.7521494815826832, -0.019519969431599896),
+    #(2.792397235042275, 2.7974956213360014, -0.07422529639414903),
+    #(3.4163326288802627, 2.5564788119253223, -1.9549612955214137),
+    (3.127549798227578, 1.7774456537104397, -1.5515171337185325)
 ]
 
 class Navigator:
@@ -53,6 +69,11 @@ class Navigator:
         self.x_g = None
         self.y_g = None
         self.theta_g = None
+        self.objective = Objective.EXPLORE
+        self.waypoints_visited = 0
+        self.num_explore = len(explore_waypoints)
+        self.stop_time = 4.2069
+        self.stop_start = 0
 
         self.th_init = 0.0
         self.waypoints = explore_waypoints
@@ -83,14 +104,14 @@ class Navigator:
         self.start_pos_thresh = (
             0.2  # threshold to be far enough into the plan to recompute it
         )
-
+    
         # threshold at which navigator switches from trajectory to pose control
         self.near_thresh = 0.2
         self.at_thresh = 0.02
         self.at_thresh_theta = 0.2
 
         # trajectory smoothing
-        self.spline_alpha = 0.15
+        self.spline_alpha = 0.08#.15
         self.spline_deg = 3  # cubic spline
         self.traj_dt = 0.1
 
@@ -100,8 +121,9 @@ class Navigator:
         self.kdx = 1.5
         self.kdy = 1.5
 
+        self.planning_fails = 0
         # heading controller parameters
-        self.kp_th = 2.0
+        self.kp_th = 1.5
 
         self.traj_controller = TrajectoryTracker(
             self.kpx, self.kpy, self.kdx, self.kdy, self.v_max, self.om_max
@@ -121,6 +143,7 @@ class Navigator:
             "/cmd_smoothed_path_rejected", Path, queue_size=10
         )
         self.nav_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        self.goal_pub = rospy.Publisher("/waypoint_goal", Marker, queue_size=10)
 
         self.trans_listener = tf.TransformListener()
 
@@ -154,9 +177,14 @@ class Navigator:
             x_g = data.x
             y_g = data.y
             theta_g = data.theta
-            print("NEW WAYPOINT ADDED:",(x_g, y_g, theta_g))
-            self.waypoints.append((x_g, y_g, theta_g))
-            #self.replan()
+            
+            if not len(self.waypoints):
+                print("NEW WAYPOINT ADDED:",(x_g, y_g, theta_g))
+                self.waypoints.append((x_g, y_g, theta_g))
+            elif (x_g, y_g, theta_g) != self.waypoints[-1]:
+                self.waypoints.append((x_g, y_g, theta_g))
+                print("NEW WAYPOINT ADDED:",(x_g, y_g, theta_g))
+
 
     def map_md_callback(self, msg):
         """
@@ -200,6 +228,23 @@ class Navigator:
         cmd_vel.linear.x = 0.0
         cmd_vel.angular.z = 0.0
         self.nav_vel_pub.publish(cmd_vel)
+    def publish_waypoint(self):
+        if self.x_g is None:
+            return
+        marker = Marker()
+        marker.header.frame_id = 'odom'
+        marker.pose.position.x = self.x_g
+        marker.pose.position.y = self.y_g
+        marker.pose.position.z = .1
+        marker.scale.x = 0.1
+        marker.scale.y = 0.1
+        marker.scale.z = 0.1
+        marker.color.a = 1.0
+        marker.color.r = 1.0
+        marker.color.b = 1.0
+        marker.color.g = 0
+        marker.type = Marker.SPHERE
+        self.goal_pub.publish(marker)
 
     def near_goal(self):
         """
@@ -303,7 +348,10 @@ class Navigator:
     def get_current_plan_time(self):
         t = (rospy.get_rostime() - self.current_plan_start_time).to_sec()
         return max(0.0, t)  # clip negative time to 0
+    def has_stopped(self):
 
+        return self.mode == Mode.IDLE and \
+               rospy.get_rostime() - self.stop_start > rospy.Duration.from_sec(self.stop_time)
     def replan(self):
         """
         loads goal into pose controller
@@ -341,9 +389,20 @@ class Navigator:
         rospy.loginfo("Navigator: computing navigation plan")
         success = problem.solve()
         if not success:
+            self.planning_fails += 1
             rospy.loginfo("Planning failed")
+            if self.planning_fails > 20:
+                self.x_g = None
+                self.y_g = None
+                self.theta_g = None
+                self.waypoints.pop(0)
+                self.switch_mode(Mode.IDLE)
             return
-        rospy.loginfo("Planning Succeeded")
+        else:
+            # forget about goal:
+            self.planning_fails = 0
+            rospy.loginfo("Planning Succeeded")
+        
 
         planned_path = problem.path
 
@@ -423,14 +482,17 @@ class Navigator:
                 self.switch_mode(Mode.IDLE)
                 print(e)
                 pass
-
+            print(self.mode,(self.x_g, self.y_g, self.theta_g), self.objective)
             # STATE MACHINE LOGIC
             # some transitions handled by callbacks
             if self.mode == Mode.IDLE:
                 if len(self.waypoints):
-                    self.x_g, self.y_g, self.theta_g = self.waypoints[0]
-                    self.replan()
-                pass
+                    if self.objective == Objective.EXPLORE or self.has_stopped():
+                        self.x_g, self.y_g, self.theta_g = self.waypoints[0]
+                        self.publish_waypoint()
+                        print('New Goal: ', (self.x_g, self.y_g, self.theta_g))
+                        self.replan()
+
             elif self.mode == Mode.ALIGN:
                 if self.aligned():
                     self.current_plan_start_time = rospy.get_rostime()
@@ -447,16 +509,23 @@ class Navigator:
                     rospy.loginfo("replanning because out of time")
                     self.replan()  # we aren't near the goal but we thought we should have been, so replan
             elif self.mode == Mode.PARK:
+                if self.x_g is None:
+                    self.switch_mode(Mode.IDLE)
                 if self.at_goal():
-                    print("!!!!!!!", self.theta)
+                    print('reached goal!')
+                    self.waypoints_visited +=1
+                    if self.waypoints_visited == self.num_explore:
+                        self.objective = Objective.RESCUE
                     # forget about goal:
                     self.x_g = None
                     self.y_g = None
                     self.theta_g = None
                     self.waypoints.pop(0)
+                    self.stop_start = rospy.get_rostime()
                     self.switch_mode(Mode.IDLE)
 
             self.publish_control()
+            
             rate.sleep()
 
 

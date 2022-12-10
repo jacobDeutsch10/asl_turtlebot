@@ -8,8 +8,9 @@ Panels:
         - /Status1
         - /TF1
         - /TF1/Tree1
-        - /Marker1/Status1
+        - /Marker1
         - /Marker1/Namespaces1
+        - /Marker2
       Splitter Ratio: 0.5
     Tree Height: 168
   - Class: rviz/Selection
@@ -137,7 +138,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -156,7 +157,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /planned_path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -184,6 +185,14 @@ Visualization Manager:
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /FOV
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /waypoint_goal
       Name: Marker
       Namespaces:
         "": true
@@ -217,7 +226,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 7.632486343383789
+      Distance: 6.6984171867370605
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -225,17 +234,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 3.1958694458007812
+        Y: 0.5116795301437378
+        Z: 1.1920928955078125e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -0.0046018557623028755
+      Pitch: 1.2003973722457886
       Target Frame: <Fixed Frame>
-      Yaw: 0.8304014205932617
+      Yaw: 6.093589782714844
     Saved: ~
 Window Geometry:
   Camera:
@@ -255,5 +264,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1542
-  X: 13
-  Y: 65
+  X: 11
+  Y: 33
