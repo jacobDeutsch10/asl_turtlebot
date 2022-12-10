@@ -12,4 +12,6 @@
   </include>
 
   <node pkg="asl_turtlebot" type="navigator.py" name="navigator" output="screen" />
+  <node pkg="asl_turtlebot" type="fov.py" name="fov" output="screen"/>
+
 </launch>

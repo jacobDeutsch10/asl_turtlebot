@@ -64,7 +64,7 @@ class AStar(object):
         Output:
             A tuple that represents the closest point to x on the discrete state grid
         """
-        return (self.resolution*round(x[0]/self.resolution), self.resolution*round(x[1]/self.resolution))
+        return (round(self.resolution*round(x[0]/self.resolution), 3), round(self.resolution*round(x[1]/self.resolution), 3))
 
     def get_neighbors(self, x):
         """
@@ -160,7 +160,6 @@ class AStar(object):
         ########## Code starts here ##########
         while len(self.open_set) > 0:
             x_curr = self.find_best_est_cost_through()
-
             if x_curr == self.x_goal:
                 self.path = self.reconstruct_path()
                 return True

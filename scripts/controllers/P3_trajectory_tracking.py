@@ -60,25 +60,29 @@ class TrajectoryTracker:
 
         dt = t - self.t_prev
         x_d, xd_d, xdd_d, y_d, yd_d, ydd_d = self.get_desired_state(t)
-        
+
         ########## Code starts here ##########
-        u1 = xdd_d + self.kpx*(x_d - x) + self.kdx*(xd_d - self.V_prev*np.cos(th))
-        u2 = ydd_d + self.kpy*(y_d - y) + self.kdy*(yd_d - self.V_prev*np.sin(th))
-        
+        # make sure V is not near zero
         if self.V_prev < V_PREV_THRES:
             self.V_prev = np.sqrt(xd_d**2 + yd_d**2)
-        V_dot, om = np.matmul(
-            np.linalg.inv(
-                np.array([
-                [np.cos(th), -1*self.V_prev*np.sin(th)],
-                [np.sin(th), self.V_prev*np.cos(th)]
-                ])
-            ),
-            np.array([u1, u2])
-        )
-        V = self.V_prev + dt*V_dot
-        #if V < V_PREV_THRES:
-        #    V = np.sqrt(xd_d**2 + yd_d**2)
+
+        # J[a, omega].T = u
+        J = np.array([
+            [np.cos(th), -self.V_prev*np.sin(th)],
+            [np.sin(th), self.V_prev*np.cos(th)]
+        ])
+
+        dx = self.V_prev * np.cos(th)
+        dy = self.V_prev * np.sin(th)
+        u = np.array([
+            xdd_d + self.kpx * (x_d - x) + self.kdx * (xd_d - dx),
+            ydd_d + self.kpy * (y_d - y) + self.kdy * (yd_d - dy)
+        ])
+        
+        # solve
+        a_omega = np.linalg.solve(J, u) # [a, omega]
+        V = a_omega[0] * dt + self.V_prev
+        om = a_omega[1]
         ########## Code ends here ##########
 
         # apply control limits
@@ -88,7 +92,6 @@ class TrajectoryTracker:
         # save the commands that were applied and the time
         self.t_prev = t
         self.V_prev = V
-        
         self.om_prev = om
 
         return V, om

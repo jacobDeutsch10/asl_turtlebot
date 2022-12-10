@@ -25,6 +25,14 @@ class Mode(Enum):
     TRACK = 2
     PARK = 3
 
+explore_waypoints = [
+    (3.2224685842650422, 2.779933137939175, -3.0834403952502436),
+    (1.787139051775313, 2.8038360096923443, -3.0775447685851915),
+    (0.7194789276188762, 2.7161621206115685, -2.1832707992361757),
+    (0.28557073807874755, 2.1215929112361462, -1.3927941798813344),
+    (0.27906471710125774, 0.2929687321869445, -0.03165554729860527),
+    (3.0258309284661156, 1.1970240906040919, 1.2283260606133848)
+]
 
 class Navigator:
     """
@@ -47,7 +55,7 @@ class Navigator:
         self.theta_g = None
 
         self.th_init = 0.0
-
+        self.waypoints = explore_waypoints
         # map parameters
         self.map_width = 0
         self.map_height = 0
@@ -79,7 +87,7 @@ class Navigator:
         # threshold at which navigator switches from trajectory to pose control
         self.near_thresh = 0.2
         self.at_thresh = 0.02
-        self.at_thresh_theta = 0.05
+        self.at_thresh_theta = 0.2
 
         # trajectory smoothing
         self.spline_alpha = 0.15
@@ -143,10 +151,12 @@ class Navigator:
             or data.theta != self.theta_g
         ):
             rospy.logdebug(f"New command nav received:\n{data}")
-            self.x_g = data.x
-            self.y_g = data.y
-            self.theta_g = data.theta
-            self.replan()
+            x_g = data.x
+            y_g = data.y
+            theta_g = data.theta
+            print("NEW WAYPOINT ADDED:",(x_g, y_g, theta_g))
+            self.waypoints.append((x_g, y_g, theta_g))
+            #self.replan()
 
     def map_md_callback(self, msg):
         """
@@ -269,7 +279,6 @@ class Navigator:
         are all properly set up / with the correct goals loaded
         """
         t = self.get_current_plan_time()
-
         if self.mode == Mode.PARK:
             V, om = self.pose_controller.compute_control(
                 self.x, self.y, self.theta, t
@@ -418,6 +427,9 @@ class Navigator:
             # STATE MACHINE LOGIC
             # some transitions handled by callbacks
             if self.mode == Mode.IDLE:
+                if len(self.waypoints):
+                    self.x_g, self.y_g, self.theta_g = self.waypoints[0]
+                    self.replan()
                 pass
             elif self.mode == Mode.ALIGN:
                 if self.aligned():
@@ -436,10 +448,12 @@ class Navigator:
                     self.replan()  # we aren't near the goal but we thought we should have been, so replan
             elif self.mode == Mode.PARK:
                 if self.at_goal():
+                    print("!!!!!!!", self.theta)
                     # forget about goal:
                     self.x_g = None
                     self.y_g = None
                     self.theta_g = None
+                    self.waypoints.pop(0)
                     self.switch_mode(Mode.IDLE)
 
             self.publish_control()

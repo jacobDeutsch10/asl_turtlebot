@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rospy
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Point
@@ -6,21 +7,19 @@ from visualization_msgs.msg import Marker
 import tf
 import numpy as np
 from numpy import linalg
-from utils.utils import wrapToPi
 
 
 class FovVisualizer:
 
     def __init__(self):
         rospy.init_node('fov_viz', anonymous=True)
-        #rospy.Subscriber('/gazebo/model_states', ModelStates, self.gazebo_callback)
         rospy.Subscriber('/camera/camera_info', CameraInfo, self.fov_callback)
         self.pub = rospy.Publisher('/FOV',Marker, queue_size=10)
         self.fov_x = None
         self.fov_y = None
         self.x, self.y, self.theta = 0, 0, 0 
         self.z = 0
-        self.d = 1
+        self.d = .2
         
 
     def gazebo_callback(self, data):
@@ -88,7 +87,7 @@ class FovVisualizer:
             cam,tr,
             br, bl,
             br, tr,
-            bl, tr,
+            bl, tl,
             tr, tl
         ]
         return ls
