@@ -15,7 +15,7 @@ import scipy.interpolate
 import matplotlib.pyplot as plt
 from controllers import PoseController, TrajectoryTracker, HeadingController
 from enum import Enum
-
+from asl_turtlebot.msg import DetectedObject, DetectedObjectList, Mission
 from dynamic_reconfigure.server import Server
 from asl_turtlebot.cfg import NavigatorConfig
 
@@ -152,7 +152,10 @@ class Navigator:
         rospy.Subscriber("/map", OccupancyGrid, self.map_callback)
         rospy.Subscriber("/map_metadata", MapMetaData, self.map_md_callback)
         rospy.Subscriber("/cmd_nav", Pose2D, self.cmd_nav_callback)
-
+        rospy.Subscriber("/detector/objects", DetectedObjectList, self.detector_callback)
+        rospy.Subscriber("/rescue", Mission, self.rescue_callback)
+        self.detected_objects = {}
+        self.mission = []
         print("finished init")
 
     def dyn_cfg_callback(self, config, level):
@@ -163,6 +166,31 @@ class Navigator:
         self.pose_controller.k2 = config["k2"]
         self.pose_controller.k3 = config["k3"]
         return config
+
+    def detector_callback(self, data:DetectedObjectList):
+        if self.objective != Objective.EXPLORE:
+            return
+        for obj, obj_msg in zip(data.objects, data.ob_msgs):
+            prev = self.detected_objects.get(obj, {'confidence': 0})
+            if obj_msg.confidence > prev['confidence']:
+                print('ADDED OBJECT:', obj)
+                self.detected_objects[obj] = {
+                    'confidence': obj_msg.confidence,
+                    'location': (np.cos(self.theta)*obj_msg.distance/3 + self.x, np.sin(self.theta)*obj_msg.distance/3 + self.y, self.theta)
+                }
+    def rescue_callback(self, data):
+        added = False
+        for n in data.objects:
+            name = n.lower()
+            if name in self.mission:
+                continue
+            if self.detected_objects.get(name):
+                print('ADDED Waypoint for :', name, self.detected_objects[name]['location'])
+                self.waypoints.append(self.detected_objects[name]['location'])
+                self.mission.append(name)
+                added = True
+        if added:
+            self.waypoints.append((3.127549798227578, 1.7774456537104397, -1.5515171337185325))
 
     def cmd_nav_callback(self, data):
         """

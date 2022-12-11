@@ -60,7 +60,145 @@
         <kinematic>0</kinematic>
       </link>
     </model>
+    <model name='cat'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>CatImage</name>
+              <uri>model://cat_box2/materials/scripts</uri>
+              <uri>model://cat_box2/materials/textures</uri>
+            </script>
+          </material>
+        </visual>
+      </link>
+      <pose frame=''>2.625995 3.017662 0.22 0 0 0</pose>
+    </model>
+   <model name='giraffe'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>giraffeImage</name>
+              <uri>model://giraffe/materials/scripts</uri>
+              <uri>model://giraffe/materials/textures</uri>
+            </script>
+          </material>
+        </visual>
+      </link>
+      <pose frame=''>2.022860 2.089582 0.22 0 0 0.768</pose>
+    </model>
 
+    <model name='elephant'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>elephantImage</name>
+              <uri>model://elephant/materials/scripts</uri>
+              <uri>model://elephant/materials/textures</uri>
+            </script>
+          </material>
+        </visual>
+      </link>
+      <pose frame=''>0.006681 1.936 0.22 0 0 1.54</pose>
+    </model>
+
+    <model name='zebra'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>zebraImage</name>
+              <uri>model://zebra/materials/scripts</uri>
+              <uri>model://zebra/materials/textures</uri>
+            </script>
+          </material>
+        </visual>
+      </link>
+      <pose frame=''>0.263603 0.026 0.22 0 0 3.129969</pose>
+    </model>
+    <model name='dog'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.5 0.01 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>dogImage</name>
+              <uri>model://dog/materials/scripts</uri>
+              <uri>model://dog/materials/textures</uri>
+            </script>
+          </material>
+        </visual>
+      </link>
+      <pose frame=''>2.649 0.016 0.22 0 0 3.129969</pose>
+    </model>
+    
+    
     <model name='wall_0'>
       <static>1</static>
       <link name='link'>
