@@ -47,7 +47,7 @@ explore_waypoints = [
     #(2.6285839898857115, 2.7521494815826832, -0.019519969431599896),
     #(2.792397235042275, 2.7974956213360014, -0.07422529639414903),
     #(3.4163326288802627, 2.5564788119253223, -1.9549612955214137),
-    (3.127549798227578, 1.7774456537104397, -1.5515171337185325)
+    (3.0938649522625554, 1.4372961376680233, -1.4317021216215275)
 ]
 
 class Navigator:
@@ -174,9 +174,10 @@ class Navigator:
             prev = self.detected_objects.get(obj, {'confidence': 0})
             if obj_msg.confidence > prev['confidence']:
                 print('ADDED OBJECT:', obj)
+                distance = obj_msg.distance/4 if obj_msg.distance > 0.33 else 0
                 self.detected_objects[obj] = {
                     'confidence': obj_msg.confidence,
-                    'location': (np.cos(self.theta)*obj_msg.distance/3 + self.x, np.sin(self.theta)*obj_msg.distance/3 + self.y, self.theta)
+                    'location': (np.cos(self.theta)*distance + self.x, np.sin(self.theta)*distance + self.y, self.theta)
                 }
     def rescue_callback(self, data):
         added = False
@@ -190,7 +191,7 @@ class Navigator:
                 self.mission.append(name)
                 added = True
         if added:
-            self.waypoints.append((3.127549798227578, 1.7774456537104397, -1.5515171337185325))
+            self.waypoints.append((3.0938649522625554, 1.4372961376680233, -1.4317021216215275))
 
     def cmd_nav_callback(self, data):
         """
@@ -510,7 +511,7 @@ class Navigator:
                 self.switch_mode(Mode.IDLE)
                 print(e)
                 pass
-            print(self.mode,(self.x_g, self.y_g, self.theta_g), self.objective)
+            #print(self.mode,(self.x_g, self.y_g, self.theta_g), self.objective)
             # STATE MACHINE LOGIC
             # some transitions handled by callbacks
             if self.mode == Mode.IDLE:
@@ -544,6 +545,8 @@ class Navigator:
                     self.waypoints_visited +=1
                     if self.waypoints_visited == self.num_explore:
                         self.objective = Objective.RESCUE
+                    if self.objective == Objective.RESCUE and len(self.mission):
+                        self.mission.pop(0)
                     # forget about goal:
                     self.x_g = None
                     self.y_g = None

@@ -14,7 +14,7 @@ class FovVisualizer:
     def __init__(self):
         rospy.init_node('fov_viz', anonymous=True)
         rospy.Subscriber('/camera/camera_info', CameraInfo, self.fov_callback)
-        self.pub = rospy.Publisher('/FOV',Marker, queue_size=10)
+        self.pub = rospy.Publisher('/FOV', Marker, queue_size=10)
         self.fov_x = None
         self.fov_y = None
         self.x, self.y, self.theta = 0, 0, 0 
