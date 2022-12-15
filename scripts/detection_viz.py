@@ -9,7 +9,7 @@ import tf
 import numpy as np
 from numpy import linalg
 
-
+animals = ['dog', 'cat', 'bird', 'horse', 'zebra', 'elephant', 'giraffe','cow', 'sheep', 'bear']
 class DetVisualizer:
 
     def __init__(self):
@@ -35,10 +35,13 @@ class DetVisualizer:
         self.h = h
         self.fov_y = 2*np.arctan2(h, 2*fy)
     def detector_callback(self, data:DetectedObjectList):
+        thresh_detect = .95
         for obj, obj_msg in zip(data.objects, data.ob_msgs):
+            print(obj, obj in animals)
             prev = self.detected_objects.get(obj, {'confidence': 0})
     
-            if obj_msg.confidence > prev['confidence'] and obj_msg.confidence > 0.85:
+            if obj_msg.confidence > prev['confidence'] and (obj_msg.confidence > thresh_detect or
+                obj in animals):
                 print('ADDED OBJECT:', obj)
                 self.detected_objects[obj] = {
                     'confidence': obj_msg.confidence,

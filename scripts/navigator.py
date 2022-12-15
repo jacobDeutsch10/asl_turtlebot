@@ -32,6 +32,32 @@ class Objective(Enum):
     RESCUE = 1
     
 
+"""explore_waypoints = [
+    (3.4, 2.65, 2),
+    (2.7, 2.7, 1.5),
+    #(1.79, 2.80, -3.08), # starts down 1st hallway
+    (0.6, 2.75, -2.2),
+    (0.3, 2.1, -2.8),
+    #(0.286, 1.12, -1.39), # sees zebra from afar
+    (0.32, 0.35, -2), # sees elephant
+    (0.32, 0.35, -0.032),
+    (2.29, 0.35, 1.53),
+    (2.29, 1.53, 1.53),
+    (2.29, 0.36, -0.03),
+    (3.09, 1.44, -1.43)
+    # (3.22, 2.78, -3.1),
+    # (1.79, 2.80, -3.08),
+    # (0.72, 2.72, -2.18),
+    # (0.286, 2.12, -1.39),
+    # (0.286, 1.12, -1.39),
+    # (0.32, 0.35, -0.032),
+    # (2.29, 0.35, 1.53),
+    # (2.29, 1.53, 1.53),
+    # (2.29, 0.36, -0.03),
+    # (3.09, 1.44, -1.43)
+]"""
+
+# old waypoints
 explore_waypoints = [
     (3.2224685842650422, 2.779933137939175, -3.0834403952502436),
     (1.787139051775313, 2.8038360096923443, -3.0775447685851915),
@@ -50,6 +76,7 @@ explore_waypoints = [
     (3.0938649522625554, 1.4372961376680233, -1.4317021216215275)
 ]
 
+#   <node pkg="asl_turtlebot" type="navigator.py" name="navigator" output="screen" />
 class Navigator:
     """
     This node handles point to point turtlebot motion, avoiding obstacles.
@@ -111,7 +138,7 @@ class Navigator:
         self.at_thresh_theta = 0.2
 
         # trajectory smoothing
-        self.spline_alpha = 0.05#.15
+        self.spline_alpha = 0.065#5#.15
         self.spline_deg = 3  # cubic spline
         self.traj_dt = 0.1
 
@@ -171,11 +198,14 @@ class Navigator:
     def detector_callback(self, data:DetectedObjectList):
 
         for obj, obj_msg in zip(data.objects, data.ob_msgs):
+            print("!!!!", obj.lower())
             if obj.lower() == 'dog':
+                print("!!!!",'PUBLISHING Woof')
                 msg = String()
                 msg.data = 'woof'
                 self.bark_pub.publish(msg)
             if obj.lower() == 'cat':
+                print("!!!!",'PUBLISHING MEOW')
                 msg = String()
                 msg.data = 'meow'
                 self.bark_pub.publish(msg)

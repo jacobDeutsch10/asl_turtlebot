@@ -6,7 +6,7 @@ material giraffeImage
 		{
 			texture_unit
 			{
-				texture ../textures/giraffe.jpg
+				texture ../textures/bird.jpeg
 			}
 		}
 	}
