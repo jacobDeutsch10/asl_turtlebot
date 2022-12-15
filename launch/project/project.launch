@@ -1,9 +1,11 @@
 <launch>
   <arg name="sim" default="true"/>
   <arg name="use_tf" default="true"/>
+  <arg name="gui" value="false" />
   <rosparam param="use_tf" subst_value="true">$(arg use_tf)</rosparam>
   <include file="$(find asl_turtlebot)/launch/root.launch">
     <arg name="world" value="project_city" />
+    
     <arg name="x_pos" default="3.15"/>
     <arg name="y_pos" default="1.6"/>
     <arg name="z_pos" default="0.0"/>
@@ -13,7 +15,8 @@
     <arg name="detector" default="detector_mobilenet.py" />
   </include>
 
-  <!-- <node pkg="asl_turtlebot" type="navigator.py" name="navigator" output="screen" /> -->
+  <node pkg="asl_turtlebot" type="navigator.py" name="navigator" output="screen" />
   <node pkg="asl_turtlebot" type="fov.py" name="fov" output="screen"/>
+  <node pkg="asl_turtlebot" type="detection_viz.py" name="det_viz" output="screen"/>
 
 </launch>

@@ -11,6 +11,11 @@ Panels:
         - /Marker1
         - /Marker1/Namespaces1
         - /Marker2
+        - /Marker3
+        - /Marker3/Status1
+        - /Marker4
+        - /Marker4/Status1
+        - /Marker4/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 168
   - Class: rviz/Selection
@@ -198,6 +203,22 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /boxes
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /boxes
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -234,17 +255,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 3.1958694458007812
-        Y: 0.5116795301437378
-        Z: 1.1920928955078125e-07
+        X: 2.7625467777252197
+        Y: -0.7016308307647705
+        Z: 3.9673977880738676e-08
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2003973722457886
+      Pitch: 1.3503972291946411
       Target Frame: <Fixed Frame>
-      Yaw: 6.093589782714844
+      Yaw: 5.633590221405029
     Saved: ~
 Window Geometry:
   Camera:
@@ -264,5 +285,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1542
-  X: 11
-  Y: 33
+  X: 9
+  Y: 1

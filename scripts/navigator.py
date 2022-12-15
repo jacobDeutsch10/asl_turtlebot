@@ -111,7 +111,7 @@ class Navigator:
         self.at_thresh_theta = 0.2
 
         # trajectory smoothing
-        self.spline_alpha = 0.08#.15
+        self.spline_alpha = 0.05#.15
         self.spline_deg = 3  # cubic spline
         self.traj_dt = 0.1
 
@@ -144,6 +144,7 @@ class Navigator:
         )
         self.nav_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         self.goal_pub = rospy.Publisher("/waypoint_goal", Marker, queue_size=10)
+        self.bark_pub = rospy.Publisher("/meow_woof", String, queue_size=10)
 
         self.trans_listener = tf.TransformListener()
 
@@ -168,11 +169,19 @@ class Navigator:
         return config
 
     def detector_callback(self, data:DetectedObjectList):
-        if self.objective != Objective.EXPLORE:
-            return
+
         for obj, obj_msg in zip(data.objects, data.ob_msgs):
+            if obj.lower() == 'dog':
+                msg = String()
+                msg.data = 'woof'
+                self.bark_pub.publish(msg)
+            if obj.lower() == 'cat':
+                msg = String()
+                msg.data = 'meow'
+                self.bark_pub.publish(msg)
             prev = self.detected_objects.get(obj, {'confidence': 0})
-            if obj_msg.confidence > prev['confidence']:
+            
+            if self.objective == Objective.EXPLORE and obj_msg.confidence > prev['confidence']:
                 print('ADDED OBJECT:', obj)
                 distance = obj_msg.distance/4 if obj_msg.distance > 0.33 else 0
                 self.detected_objects[obj] = {
@@ -191,6 +200,7 @@ class Navigator:
                 self.mission.append(name)
                 added = True
         if added:
+            self.mission.append('home')
             self.waypoints.append((3.0938649522625554, 1.4372961376680233, -1.4317021216215275))
 
     def cmd_nav_callback(self, data):
@@ -426,6 +436,8 @@ class Navigator:
                 self.theta_g = None
                 self.waypoints.pop(0)
                 self.switch_mode(Mode.IDLE)
+                if self.objective == Objective.RESCUE and len(self.mission):
+                    self.mission.pop(0)
             return
         else:
             # forget about goal:
